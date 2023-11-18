@@ -1,17 +1,20 @@
-MicroPython module for control MMC5603 Geomagnetic Sensor.
+Модуль MicroPython для управления геомагнитным датчиком MMC5603.
 
-# I2C bus
-Just connect (VCC, GND, SDA, SCL) from your MMC5603 board to Arduino, ESP or any other board with MicroPython firmware.
+# Шина I2C
+Просто подключите контакты (VCC, GND, SDA, SCL) платы MMC5603 к соответствующим контактам Arduino, 
+ESP или любой другой платы с прошивкой MicroPython!
 
-# Supply
-Supply voltage MMC5603 3.3 Volts only (1.62V to 3.6V)!
+# Питание
+Напряжение питания MMC5603 3,3 В (от 1,62 В до 3,6 В)!
 
-# Upload
-Upload micropython firmware to the NANO(ESP, etc) board, and then files: main.py, mmc5603mod.py and sensor_pack folder. 
-Then open main.py in your IDE and run it.
+# Загрузка ПО в плату
+Загрузите прошивку micropython на плату NANO(ESP и т. д.), а затем файлы: main.py, mmc5603mod.py и папку Sensor_pack полностью!
+Затем откройте main.py в своей IDE и запустите его.
 
-# Pictures
-## MMC56x3 board view
-![alt text](https://github.com/octaprog7/QMC5883/blob/master/pics/board_5883.jpg)
-## IDE
-![alt text](https://github.com/octaprog7/QMC5883/blob/master/pics/ide_5883.png)
+## Адрес датчика
+![alt text](https://github.com/octaprog7/MMC5603/blob/master/pics/address.jpg)
+## Плата с датчиком MMC56x3
+![alt text](https://github.com/octaprog7/MMC5603/blob/master/pics/board_5603.jpg)
+## Среда разработки
+![alt text](https://github.com/octaprog7/MMC5603/blob/master/pics/ide_5603.png)
+
