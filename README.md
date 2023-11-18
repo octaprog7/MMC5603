@@ -12,7 +12,7 @@ ESP или любой другой платы с прошивкой MicroPython!
 Затем откройте main.py в своей IDE и запустите его.
 
 ## Адрес датчика
-![alt text](https://github.com/octaprog7/MMC5603/blob/master/pics/address.jpg)
+![alt text](https://github.com/octaprog7/MMC5603/blob/master/pics/address.png)
 ## Плата с датчиком MMC56x3
 ![alt text](https://github.com/octaprog7/MMC5603/blob/master/pics/board_5603.jpg)
 ## Среда разработки
