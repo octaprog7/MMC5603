@@ -29,7 +29,10 @@ if __name__ == '__main__':
     print(f"Самопроверка пройдена: {test_passed}")
     if not test_passed:
         print(f"Самопроверка НЕ пройдена! Прекращаем работу! :-)")
-        sys.exit(-1)
+        # sys.exit(-1)
+    wt_after_reset_ms = 20
+    sensor.soft_reset()     # сбросил режим работы датчика
+    time.sleep_ms(wt_after_reset_ms)       # ожидаю, когда датчик придет в себя!
 
     print("Демонстрация измерения температуры!")
     for _ in range(10):
@@ -37,7 +40,23 @@ if __name__ == '__main__':
         time.sleep_ms(200)
 
     print("Внимание! Включите плоттер и вращайте датчик!")
+    # режим измерений 'по запросу'
+    print("Внимание! Включите плоттер и вращайте датчик!")
+    print("Режим измерения 'по запросу!'")
+    _counter = 0
+    for _ in range(200):
+        sensor.start_measure(continuous_mode=False, auto_set_reset=True)
+        time.sleep_ms(100)
+        if sensor.is_data_ready():
+            axis = sensor.get_axis(-1)
+            print(f"X: {axis[0]}; Y: {axis[1]}; Z: {axis[2]};")
+        _counter += 1
+        if 0 == _counter % 10:
+            pass
 
+    sensor.soft_reset()  # сбросил режим работы датчика
+    time.sleep_ms(wt_after_reset_ms)  # ожидаю, когда датчик придет в себя!
+    # режим измерений 'непрерывный'
     sensor.set_update_rate(20)
     print(f"Частота обновления данных [Гц]: {sensor.get_update_rate()}")
     print(f"bandwidth: {sensor.band_width}")
@@ -57,10 +76,3 @@ if __name__ == '__main__':
         if index > samples_count:
             break
 
-    sys.exit(0)
-    # while True:
-    #     if sensor.is_data_ready():
-    #         x = sensor.get_meas_result('x')
-    #         y = sensor.get_meas_result('y')
-    #         z = sensor.get_meas_result('z')
-    #         print(x, y, z)
