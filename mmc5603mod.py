@@ -13,6 +13,7 @@ from sensor_pack.base_sensor import check_value, Iterator, TemperatureSensor
 import time
 
 _meas_time_us = 6_600, 3_500, 2_000, 1_200
+_offset = -2 ** 19
 
 
 @micropython.native
@@ -22,13 +23,6 @@ def to_bit_tuple(source: int, bits: range) -> tuple:
     #     raise ValueError("bad bytes_count")
     mask = 0x01    # маска
     return tuple(0 != source & (mask << shift) for shift in bits)
-
-
-def _bytes_to_raw(source: bytes) -> int:
-    """Из bytes в значение магнитной индукции (raw)"""
-    val = source[0] << 12 | source[1] << 4 | source[2] >> 4
-    val -= 524288
-    return val
 
 
 def _get_update_rate_limits(bandwidth: int, use_auto_set_reset: bool) -> tuple[int, int]:
@@ -48,9 +42,17 @@ def _get_update_rate_limits(bandwidth: int, use_auto_set_reset: bool) -> tuple[i
         return 1, 255
 
 
+@micropython.native
 def axis_name_to_reg_addr(axis_name: int) -> tuple:
     """Функция-обертка. Преобразует имя оси 0('x'), 1('y'), 2('z')) в адрес соответствующего регистра"""
     return geosensmod.axis_name_to_reg_addr(axis_name, offset=0, multiplier=2), 6 + axis_name
+
+
+@micropython.native
+def _bytes_to_raw(source: bytes) -> int:
+    """Из bytes в значение магнитной индукции (raw).
+    low_resolution: if True, result - 16 bit, else  result - 20 bit"""
+    return _offset + (source[0] << 12) | (source[1] << 4) | (0xF0 & source[2]) >> 4
 
 
 class MMC5603(geosensmod.GeoMagneticSensor, Iterator, TemperatureSensor):
@@ -58,7 +60,7 @@ class MMC5603(geosensmod.GeoMagneticSensor, Iterator, TemperatureSensor):
 
     def __init__(self, adapter: bus_service.BusAdapter, address: int = 0x30):
         check_value(address, valid_range=(0x30,), error_msg=f"Invalid address value: {address}")
-        super().__init__(adapter=adapter, address=address, big_byte_order=False)  # little endian
+        super().__init__(adapter=adapter, address=address, big_byte_order=True)
         #
         self._buf_3 = bytearray((0, 0, 0))  # для хранения
         self._buf_9 = bytearray((0 for _ in range(9)))  # для хранения
@@ -369,22 +371,25 @@ class MMC5603(geosensmod.GeoMagneticSensor, Iterator, TemperatureSensor):
         До вызова этого метода нужно вызвать set_update_rate !!!"""
         # self._set_execute_period() !!!
         self.is_auto_set_reset = auto_set_reset
-        self._write_reg(0x1A, self._update_rate, 1)     # установил update rate
+        # устанавливаю update rate
+        self._write_reg(0x1A, self._update_rate if continuous_mode else 0x00, 1)
         # Запустите расчет периода измерения по update_rate (ODR). Этот бит должен быть установлен до(!)
         # начала измерений в непрерывном режиме.
         self._control_0(cmm_freq_en=1)
-        time.sleep_ms(10)   # ожидание завершения датчиком расчетов!
+        if continuous_mode:
+            time.sleep_ms(10)   # ожидание завершения датчиком расчетов!
         _axis = self._axis_measurement
-        #
-        self._control_0(auto_sr_en=auto_set_reset)
+        # self._control_0(auto_sr_en=auto_set_reset, tm_m=not continuous_mode)
         self._control_1(bandwidth=self._bandwidth,
                         x_inhibit='x' not in _axis,
                         y_inhibit='y' not in _axis,
                         z_inhibit='z' not in _axis)
+        # if continuous_mode:
         self._control_2(hi_power=self._hi_power,
                         en_prd_set=self._periodical_set_en,
                         cmm_en=continuous_mode,
                         prd_set=self.set_execute_period)
+        self._control_0(auto_sr_en=auto_set_reset, tm_m=not continuous_mode)
         # сохраняю режим измерений
         self._cmm = continuous_mode
 
