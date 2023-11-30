@@ -5,7 +5,7 @@
 # Пожалуйста, прочитайте документацию на QMC5883L!
 # Please read the QMC5883L documentation!
 import math
-import sys
+# import sys
 from machine import I2C, Pin
 
 import mmc5603mod
@@ -75,4 +75,3 @@ if __name__ == '__main__':
         index += 1
         if index > samples_count:
             break
-
